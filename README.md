@@ -1,3 +1,3 @@
 # compu2_2022
-Agustin Aguero
+Agustin Aguero 57089
 Curso de programacion concurrente
