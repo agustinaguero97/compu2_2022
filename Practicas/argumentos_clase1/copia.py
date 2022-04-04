@@ -14,8 +14,6 @@ def copia_a(arch_cop,data):
         file.write(data)
     print("listo")
 
-    
-    
 
 def main():
     parser = argparse.ArgumentParser(usage="\ncopia.py [-h] [-i ARCHI_ORIGINAL] [-o ARCHI_COPIA]")

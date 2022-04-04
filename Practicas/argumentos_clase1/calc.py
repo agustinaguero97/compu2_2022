@@ -12,6 +12,7 @@ El programa deberá verificar que los argumentos sean válidos (no repetidos, n�
 
 import sys
 import getopt
+
 def calculadora(opts,args):
     for op,arg in opts:
         if op == '-n':
@@ -33,18 +34,6 @@ def calculadora(opts,args):
             mul = num_uno*num_dos
             print(f'multiplicacion: {num_uno}*{num_dos}={mul}' )
 
-        
-    """for op, arg in opts:
-        print(arg)
-        if arg == '+':
-            suma = op in ['-n']
-            print(f"aca {suma}")
-        elif arg == '-':
-            print("rest")
-        elif arg == 'mul':
-            print("multi")
-        elif arg == '/':
-            print("div")"""
 def main():
     try:
         (opts,args) = getopt.getopt(sys.argv[1:], 'o:n:m:', ["opciones","numero uno","numero dos"])
