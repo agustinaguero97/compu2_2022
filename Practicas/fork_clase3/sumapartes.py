@@ -94,5 +94,10 @@ def sumador(pid_hijo):
 
 if __name__ == '__main__':
     main()
+    """a mejorar:   
+                    me acabo de dar cuenta que habia que usar fork
+                    el modo verboso deberia funcionar sin necesidad de un argumento
+    """
+    
     
 
