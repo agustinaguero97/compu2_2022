@@ -33,17 +33,19 @@ Ending process 32800
 32800 – 4658: 268943600
 """
 
-import os,argparse
+import os,argparse,time
+
 
 def ChildProcess(verboso):
 
     child =os.getpid()
-
-    if verboso == 1:
+    time.sleep(1)
+    if verboso:
         print(f"starting process {child}")
         suma = sumador()
         print(f"PID {child} - PPID {os.getppid()}: {suma}")
         print(f"ending process: {child}")
+        
     else:
         suma = sumador()
         print(f"PID {child} - PPID {os.getppid()}: {suma}")
@@ -55,9 +57,11 @@ def sumador():
         suma = suma + par
     return suma
 
+"""
 # Fork and create a child process
 def creation(verboso):
     #crea los hijos
+    print("creating process")
     retVal = os.fork()
 
 
@@ -69,21 +73,33 @@ def creation(verboso):
         ChildProcess(verboso)
         #cierro el proceso hijo, sino tendre un hijo que haga mas hijos
         os._exit(0)
-    else:
+    #else:
+    #    os.wait()"""
 
-        os.wait()
         
 def main():
     #Defino el parseo de argumentos
     parser = argparse.ArgumentParser(usage="\nsumapartes.py [-h HELP] [-n NUMERO] [-v VERBOSO]")
     parser.add_argument('-n', '--numero', metavar='NUMERO', type=int, default=1, help="Cantidad de procesos hijos a crear")
-    parser.add_argument('-v', '--verboso', metavar='VERBOSO', type=int, default=0 , help="Activa modo verboso colocando un 1")
+    parser.add_argument('-v', '--verboso', action='store_true', help="Activa modo verboso, no requiere argumentos")
     args = parser.parse_args()
     numero = args.numero
     verboso = args.verboso
     
+
     #crea la cantidad de hijos solicitados
     for x in range(1,numero+1):
-        creation(verboso)
+        #creation(verboso)
+        retVal = os.fork()
+
+        # Separate logic for parent and child
+        if retVal == 0:
+            #inicio la rutina del proceso hijo
+            ChildProcess(verboso)
+            #cierro el proceso hijo, sino tendre un hijo que haga mas hijos
+            os._exit(0)
+
+    os.waitpid(retVal,0)
+    
 if __name__ == "__main__":
     main()

@@ -42,7 +42,7 @@ def main():
     #Defino el parseo de argumentos
     parser = argparse.ArgumentParser(usage="\nsumapartes.py [-h HELP] [-n NUMERO] [-v VERBOSO]")
     parser.add_argument('-n', '--numero', metavar='NUMERO', type=int, default=1, help="Cantidad de procesos hijos a crear")
-    parser.add_argument('-v', '--verboso', metavar='VERBOSO', type=int, default=0 , help="Activa modo verboso colocando un 1")
+    parser.add_argument('-v', '--verboso', action = 'store_true' , help="Activa modo verboso , no requiere argumentos")
     args = parser.parse_args()
     numero = args.numero
     verboso = args.verboso
@@ -75,7 +75,7 @@ def sentencia_hijo(verboso,pid_padre):
     #averiguo el id del proceso hijo
     #el print de esto no tiene orden especifico, depende de como maneje subprocesos el sistema operativo
     pid_hijo =  int(os.getpid())
-    if verboso == 1:
+    if verboso:
         print(f"starting process {pid_hijo}")
         suma = sumador(pid_hijo)
         print(f"hijo {pid_hijo} de padre {pid_padre}: suma = {suma}")
@@ -94,10 +94,6 @@ def sumador(pid_hijo):
 
 if __name__ == '__main__':
     main()
-    """a mejorar:   
-                    me acabo de dar cuenta que habia que usar fork
-                    el modo verboso deberia funcionar sin necesidad de un argumento
-    """
-    
+
     
 
