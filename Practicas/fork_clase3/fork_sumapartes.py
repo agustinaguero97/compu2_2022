@@ -39,7 +39,6 @@ import os,argparse,time
 def ChildProcess(verboso):
 
     child =os.getpid()
-    time.sleep(1)
     if verboso:
         print(f"starting process {child}")
         suma = sumador()
@@ -57,25 +56,26 @@ def sumador():
         suma = suma + par
     return suma
 
-"""
-# Fork and create a child process
-def creation(verboso):
-    #crea los hijos
-    print("creating process")
-    retVal = os.fork()
+def creator(numero,verboso):
+    #crea la cantidad de hijos solicitados
+    for x in range(1,numero+1):
+        #creation(verboso)
+        retVal = os.fork()
 
-
-
-    # Separate logic for parent and child
-
-    if retVal == 0:
-        #inicio la rutina del proceso hijo
-        ChildProcess(verboso)
-        #cierro el proceso hijo, sino tendre un hijo que haga mas hijos
-        os._exit(0)
-    #else:
-    #    os.wait()"""
-
+        # Separate logic for parent and child
+        #child logic
+        if retVal == 0:
+            #inicio la rutina del proceso hijo
+            ChildProcess(verboso)
+            #cierro el proceso hijo, sino tendre un hijo que haga mas hijos
+            os._exit(0)
+        
+        #parent logic
+        else:
+            pass
+    #parent wait for all the childs to end 
+    os.waitpid(retVal,0)
+    
         
 def main():
     #Defino el parseo de argumentos
@@ -85,21 +85,7 @@ def main():
     args = parser.parse_args()
     numero = args.numero
     verboso = args.verboso
-    
+    creator(numero,verboso)
 
-    #crea la cantidad de hijos solicitados
-    for x in range(1,numero+1):
-        #creation(verboso)
-        retVal = os.fork()
-
-        # Separate logic for parent and child
-        if retVal == 0:
-            #inicio la rutina del proceso hijo
-            ChildProcess(verboso)
-            #cierro el proceso hijo, sino tendre un hijo que haga mas hijos
-            os._exit(0)
-
-    os.waitpid(retVal,0)
-    
 if __name__ == "__main__":
     main()
