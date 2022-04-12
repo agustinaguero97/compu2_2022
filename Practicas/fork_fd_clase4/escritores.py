@@ -42,65 +42,99 @@ Proceso 401709 escribiendo letra 'C'
 ABCBACABCABCABC
 """
 import argparse, os, time
-from importlib.resources import path
 
 class ToBig(Exception):
     def __init__(self,message):
         print(message)
+        os._exit(0)
 
-#this method write to the file the letter
-def file_writter(path_dir,letter_of_this_process):
-    mode = 'a' if os.path.exists(path_dir) else 'w'
-    with open(path_dir, mode) as f:
-        f.write(letter_of_this_process)
-        f.flush()
-        f.close()
-        time.sleep(1)
+class NoPath(Exception):
+    def __init__(self,message):
+        print(message)
+        os._exit(0)
 
-        
-
-#logic of the child process
-def child_process(verbose,amount,path_dir,letter_of_this_process):
-    pid = os.getpid()
-    for am in range(0,amount):
-        if verbose:
-            print(f"Process {pid} writing {letter_of_this_process}")
-            file_writter(path_dir,letter_of_this_process)
-        else:
-            print(f"{letter_of_this_process}")
-            file_writter(path_dir,letter_of_this_process)
-        
-            
-
-def creator(number,verbose,amount,path_dir,letters):
-    #create the amount of childs 
-    for x in range(1,number+1):
-        retVal = os.fork()
-
-        # Separate logic for parent and child
-        #child logic
-        if retVal == 0:
-
-            letter_of_this_process = letters.pop(0)
-            child_process(verbose,amount,path_dir,letter_of_this_process)
-            #close the process child
-            os._exit(0)
-        
-        #parent logic
-        else:
-            letter_of_this_process = letters.pop(0)
-    #parent wait for all the childs to end 
-    os.waitpid(retVal,0)
+class InvalidFormat(Exception):
+    def __init__(self,message):
+        print(message)
+        os._exit(0)
+    
     
 
+class Escritores():
+    def __init__(self,number,verbose,amount,path_dir):
+        self.number = number
+        self.verbose = verbose
+        self.amount = amount
+        self.path_dir = path_dir
+        self.letters = ['A','B','C','D','E','F','G',
+                        'H','I','J','K','L','M','N',
+                        'O','P','Q','R','S','T','U',
+                        'V','W','X','Y','Z']
+        
+
+    def file_writter(self,letter_of_this_process):
+        #'a' allow me to append new content, and not overwrit it
+        #also mode will allow me to create a file if it does not exits with the path given
+        mode = 'a' if os.path.exists(self.path_dir) else 'w'
+        with open(self.path_dir, mode) as f:
+            f.write(letter_of_this_process)
+            f.flush()
+            f.close()
+            time.sleep(1)
+
+    def child_process(self,letter_of_this_process):
+        pid = os.getpid()
+        for am in range(0,self.amount):
+            if self.verbose:
+                print(f"PPID: {os.getppid()} ,Process {pid} writing {letter_of_this_process} ")
+                escritores.file_writter(letter_of_this_process)
+            else:
+                print(f"{letter_of_this_process}")
+                escritores.file_writter(letter_of_this_process)
+    
+    #behavior of the child process and the parent process
+    def creator(self):
+        #create the amount of childs 
+        for x in range(1,self.number+1):
+            retVal = os.fork()
+
+            # Separate logic for parent and child
+            #child logic
+            if retVal == 0:
+
+                letter_of_this_process = self.letters.pop(0)
+                escritores.child_process(letter_of_this_process)
+                #close the process child
+                os._exit(0)
+            
+            #parent logic
+            else:
+                letter_of_this_process = self.letters.pop(0)
+        #parent wait for all the childs to end 
+        os.waitpid(retVal,0)
+
 def main():
-    #Defino el parseo de argumentos
+    #Define the arguments
     parser = argparse.ArgumentParser(usage="\nescritores.py [-h HELP] [-n NUMBER] [-f PATH] [-r AMOUNT] [-v VERBOSE]")
-    parser.add_argument('-n', '--number', metavar='NUMBER', type=int, default=1, help="amount of child process to create")
-    parser.add_argument('-f', '--path', metavar='PATH', type=str, help='Path of the file that storage the letters')
-    parser.add_argument('-r', '--amount',metavar='AMOUNT', type=int,default=1,help='Amount of times that the letter repeats itself')
-    parser.add_argument('-v', '--verbose',action='store_true', help="Activate verbose mode")
-    letters = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z']
+    parser.add_argument('-n', '--number', 
+                        metavar='NUMBER',
+                        type=int, default=1,
+                        help="amount of child process to create")
+    
+    parser.add_argument('-f', '--path', 
+                        metavar='PATH', 
+                        type=str, 
+                        help='Path of the file that storage the letters, must be a .txt')
+    
+    parser.add_argument('-r', '--amount',
+                        metavar='AMOUNT', 
+                        type=int,
+                        default=1,
+                        help='Amount of times that the process repeats the letter')
+    
+    parser.add_argument('-v', '--verbose',
+                        action='store_true', 
+                        help="Activate verbose mode, no value requiered")
 
     args = parser.parse_args()
     number = args.number
@@ -108,15 +142,25 @@ def main():
     amount = args.amount
     verbose = args.verbose
     
-    if number > 26:
-        raise ToBig(f"cant assing one letter to every process letters:26 , process:{number} ")
-    #this clean the file if there is any
+    #if a put a negative number or a number greater that 26, cant assing a letter to each process
+    if 1 > number > 26:
+        raise ToBig(f"cant assing one letter to every process: letters:26 , process:{number} ")
+    
+    #check if a path was entered
+    if not path_dir:
+        raise NoPath("No path entered, check -h")
+
+    #this blocks me from putting a file that is not a txt
+    if not path_dir.endswith(".txt"):
+        raise InvalidFormat("file is an invalid format, must be .txt")
+    
+    #this clean the file if there is any content in it
     if os.path.isfile(path_dir):
         open(path_dir, 'w').close()
-    
-    
-    creator(number,verbose,amount,path_dir,letters)
-
-    
+        
+    return number , verbose , amount , path_dir
+            
 if __name__ == "__main__":
-    main()
+    number, verbose, amount, path_dir = main()
+    escritores = Escritores(number, verbose, amount, path_dir)
+    escritores.creator()
