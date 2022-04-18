@@ -23,8 +23,9 @@ ovihcra nu se etse
 lat euq
 odnuM aloH"""
 
+#NO FUNCIONA CORRECTAMENTE
 
-import os,argparse,time,sys
+import os,argparse,time
 
 class NoPath(Exception):
     def __init__(self,message):
@@ -46,7 +47,6 @@ class Inversor():
         self.dir_path = dir_path
         self.file_content_to_list = []
         
-        
     def data_harvest(self):
         with open(self.dir_path, 'r') as f:
             # read an store all lines into list
@@ -54,12 +54,11 @@ class Inversor():
             print(self.file_content_to_list)
     
     def parent_n_child(self):
+        aca = []
         for line in self.file_content_to_list:
-            
-            r , w = os.pipe()
+            r,w = os.pipe()
             #for every element of the list, create a child process
             retval = os.fork()
-            
             if retval == 0:
                 print("__child__")
                 os.close(r)
@@ -68,23 +67,26 @@ class Inversor():
                 w.write(line_inverted)
                 time.sleep(1)
                 w.close()
-                
-
                 os._exit(0)
 
             else:
+                
                 print("__parent__")
                 os.close(w)
-                r = os.fdopen(r)
-
-                line_inverted = r.read()
-                print(line_inverted)
-                r.close()
-
-
+                r = os.fdopen(r) 
                 
+                #esta linea es bloqueante, el padre espera aca y no continua con el loop for no puediendo ejecutar varios
+                #procesos a la vez
+                datos = r.read()
+                
+                aca.append(datos)
+                
+        
         #parent wait for all the childs to finish    
         os.waitpid(retval,0)
+        
+        for elements in aca:
+            print(elements) 
 
 
 def main():
