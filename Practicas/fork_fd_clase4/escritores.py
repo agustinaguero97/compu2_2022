@@ -78,6 +78,7 @@ class Escritores():
         mode = 'a' if os.path.exists(self.path_dir) else 'w'
         with open(self.path_dir, mode) as f:
             f.write(letter_of_this_process)
+            #flush will clear the buffer every time a write its done
             f.flush()
             f.close()
             time.sleep(1)
@@ -87,28 +88,28 @@ class Escritores():
         for am in range(0,self.amount):
             if self.verbose:
                 print(f"PPID: {os.getppid()} ,Process {pid} writing {letter_of_this_process} ")
-                escritores.file_writter(letter_of_this_process)
             else:
                 print(f"{letter_of_this_process}")
-                escritores.file_writter(letter_of_this_process)
+            escritores.file_writter(letter_of_this_process)
     
     #behavior of the child process and the parent process
     def creator(self):
         #create the amount of childs 
-        for x in range(1,self.number+1):
+        for _x in range(1,self.number+1):
             retVal = os.fork()
 
             # Separate logic for parent and child
             #child logic
             if retVal == 0:
-
-                letter_of_this_process = self.letters.pop(0)
+                #assing the first letter of the list letters, the parent will handle the list itself
+                letter_of_this_process = self.letters[0]
                 escritores.child_process(letter_of_this_process)
                 #close the process child
                 os._exit(0)
             
             #parent logic
             else:
+                #if the parent does not pop the element of the list, the childs with only use 'A'
                 letter_of_this_process = self.letters.pop(0)
         #parent wait for all the childs to end 
         os.waitpid(retVal,0)
@@ -118,7 +119,8 @@ def main():
     parser = argparse.ArgumentParser(usage="\nescritores.py [-h HELP] [-n NUMBER] [-f PATH] [-r AMOUNT] [-v VERBOSE]")
     parser.add_argument('-n', '--number', 
                         metavar='NUMBER',
-                        type=int, default=1,
+                        type=int, 
+                        default=1,
                         help="amount of child process to create")
     
     parser.add_argument('-f', '--path', 
@@ -142,17 +144,17 @@ def main():
     amount = args.amount
     verbose = args.verbose
     
-    #if a put a negative number or a number greater that 26, cant assing a letter to each process
-    if 1 > number > 26:
-        raise ToBig(f"cant assing one letter to every process: letters:26 , process:{number} ")
+    #if a put a number greater that 26, cant assing a letter to each process
+    if number > 26:
+        raise ToBig(f"\nError: cant assing one letter to every process: letters:26 , process:{number}, check -h ")
     
     #check if a path was entered
     if not path_dir:
-        raise NoPath("No path entered, check -h")
+        raise NoPath("\nError: No path entered, check -h")
 
     #this blocks me from putting a file that is not a txt
     if not path_dir.endswith(".txt"):
-        raise InvalidFormat("file is an invalid format, must be .txt")
+        raise InvalidFormat("\nError: file is an invalid format, must be .txt, check -h")
     
     #this clean the file if there is any content in it
     if os.path.isfile(path_dir):

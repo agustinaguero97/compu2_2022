@@ -23,14 +23,12 @@ ovihcra nu se etse
 lat euq
 odnuM aloH"""
 
-#NO FUNCIONA CORRECTAMENTE
+#DOES NOT WORK CORRECTLY, THE PARENT SHOULD SEND THE LINE TO THE CHILD TROUGH A PIPE. THEN THE CHILD RECEIVES IT,PROCESS THAT LINE, AND SEND IT BACK
+#PROBABLY WITH TWO PIPES
+#ONE WHERE THE PARENT SEND DATA(this one is not done)
+#OTHER WHERE THE PARENT RECEIVES DATA(this one is done)
 
 import os,argparse,time
-
-class NoPath(Exception):
-    def __init__(self,message):
-        print(message)
-        os._exit(0)
 
 class InvalidFormat(Exception):
     def __init__(self,message):
@@ -46,6 +44,10 @@ class Inversor():
     def __init__(self,dir_path):
         self.dir_path = dir_path
         self.file_content_to_list = []
+        self.r_parent,self.w_child = os.pipe()
+        
+        #other pipe
+        #self.w_parent,self.r_child = os.pipe()
         
     def data_harvest(self):
         with open(self.dir_path, 'r') as f:
@@ -54,53 +56,44 @@ class Inversor():
             print(self.file_content_to_list)
     
     def parent_n_child(self):
-        aca = []
+        
         for line in self.file_content_to_list:
-            r,w = os.pipe()
-            #for every element of the list, create a child process
+            
+            #for every element of the list, create a child process    
             retval = os.fork()
+            
             if retval == 0:
+                
                 print("__child__")
-                os.close(r)
-                w = os.fdopen(w,'w')
+                os.close(self.r_parent)
+                self.w_child = os.fdopen(self.w_child,'w')
                 line_inverted = line.strip('\n')[::-1]
-                w.write(line_inverted)
+                self.w_child.write(f"\n{line_inverted}")
                 time.sleep(1)
-                w.close()
+                self.w_child.close()
                 os._exit(0)
-
-            else:
                 
-                print("__parent__")
-                os.close(w)
-                r = os.fdopen(r) 
-                
-                #esta linea es bloqueante, el padre espera aca y no continua con el loop for no puediendo ejecutar varios
-                #procesos a la vez
-                datos = r.read()
-                
-                aca.append(datos)
-                
+            
+        print("__parent__")
+        os.close(self.w_child)
+        self.r_parent = os.fdopen(self.r_parent)
         
-        #parent wait for all the childs to finish    
-        os.waitpid(retval,0)
-        
-        for elements in aca:
-            print(elements) 
+        #parent process wait here until all the childs finish writing
+        line_inverted = self.r_parent.read() 
+            
+        print(line_inverted)  
 
 
 def main():
     parser = argparse.ArgumentParser(usage="\ninversor.py [-h HELP] [-f PATH]")
     parser.add_argument('-f', '--path', 
                         metavar='PATH', 
-                        type=str, 
+                        type=str,
+                        required= True, 
                         help='Path of the file that will get his content inverted, must be a .txt')    
     args = parser.parse_args()
     dir_path = args.path
     
-    #check if a path was entered
-    if not dir_path:
-        raise NoPath("\nError: No path entered, check -h")
 
     #this blocks me from putting a file that is not a txt
     if not dir_path.endswith(".txt"):

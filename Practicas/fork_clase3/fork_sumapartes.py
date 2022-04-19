@@ -80,8 +80,17 @@ def creator(numero,verboso):
 def main():
     #Defino el parseo de argumentos
     parser = argparse.ArgumentParser(usage="\nsumapartes.py [-h HELP] [-n NUMERO] [-v VERBOSO]")
-    parser.add_argument('-n', '--numero', metavar='NUMERO', type=int, default=1, help="Cantidad de procesos hijos a crear")
-    parser.add_argument('-v', '--verboso', action='store_true', help="Activa modo verboso, no requiere argumentos")
+    parser.add_argument('-n',
+                        '--numero', 
+                        metavar='NUMERO',
+                        type=int,
+                        default=1,
+                        help="Cantidad de procesos hijos a crear")
+    
+    parser.add_argument('-v', '--verboso', 
+                        action='store_true', 
+                        help="Activa modo verboso, no requiere argumentos")
+    
     args = parser.parse_args()
     numero = args.numero
     verboso = args.verboso
